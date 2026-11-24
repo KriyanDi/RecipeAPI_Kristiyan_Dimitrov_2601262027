@@ -37,6 +37,7 @@ class Recipe(Base):
     instructions: Mapped[str]
     prep_time_minutes: Mapped[int]
     servings: Mapped[int]
+    difficulty: Mapped[str]
     author_id: Mapped[int] = mapped_column(
         ForeignKey("author.id", ondelete="RESTRICT"))
     category_id: Mapped[int | None] = mapped_column(

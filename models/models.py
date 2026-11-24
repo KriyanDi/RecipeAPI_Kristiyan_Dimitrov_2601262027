@@ -53,6 +53,7 @@ class Recipe(BaseModel):
     instructions: str
     prep_time_minutes: int
     servings: int
+    difficulty: str
     author_id: int
     category_id: int | None
 
@@ -63,6 +64,7 @@ class CreateRecipe(BaseModel):
     instructions: str = Field(min_length=1)
     prep_time_minutes: int = Field(gt=0)
     servings: int = Field(gt=0)
+    difficulty: Literal["easy", "medium", "hard"]
     author_id: int
     category_id: int | None = None
 
@@ -90,6 +92,7 @@ class ScaledRecipe(BaseModel):
     title: str
     instructions: str
     prep_time_minutes: int
+    difficulty: str
     original_servings: int
     servings: int
     ingredients: list[RecipeIngredient]
