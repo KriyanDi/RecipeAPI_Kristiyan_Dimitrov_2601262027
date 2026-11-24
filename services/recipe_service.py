@@ -21,6 +21,12 @@ class RecipeService:
     def get_recipe(self, id: int, db_session: Session) -> Recipe:
         return self._get(id, db_session)
 
+    def get_recipes_by_author(self, author_id: int, db_session: Session,
+                              author_service: AuthorService) -> list[Recipe]:
+        author = author_service.get_author(author_id, db_session)
+        return db_session.scalars(
+            select(Recipe).where(Recipe.author_id == author.id)).all()
+
     def create_recipe(self, data: dict, db_session: Session,
                       author_service: AuthorService,
                       category_service: CategoryService) -> Recipe:
