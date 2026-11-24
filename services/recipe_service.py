@@ -16,8 +16,18 @@ class RecipeService:
             raise NotFound(f"Recipe with id {id} not found")
         return recipe
 
-    def get_recipes(self, db_session: Session) -> list[Recipe]:
-        return db_session.scalars(select(Recipe)).all()
+    def get_recipes(self, db_session: Session, title: str | None = None,
+                    category_id: int | None = None,
+                    max_time: int | None = None) -> list[Recipe]:
+        stmt = select(Recipe)
+        if title is not None:
+            stmt = stmt.where(
+                func.lower(Recipe.title).like(f"%{title.strip().lower()}%"))
+        if category_id is not None:
+            stmt = stmt.where(Recipe.category_id == category_id)
+        if max_time is not None:
+            stmt = stmt.where(Recipe.prep_time_minutes <= max_time)
+        return db_session.scalars(stmt).all()
 
     def get_recipe(self, id: int, db_session: Session) -> Recipe:
         return self._get(id, db_session)

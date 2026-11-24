@@ -12,9 +12,11 @@ from services.recipe_service import RecipeService, get_recipe_service
 router = APIRouter(prefix="/recipe", tags=["Recipes"])
 
 @router.get("/")
-def get_recipes(db_session: Session = Depends(get_db),
+def get_recipes(title: str | None = None, category_id: int | None = None,
+                max_time: int | None = Query(default=None, gt=0),
+                db_session: Session = Depends(get_db),
                 recipe_service: RecipeService = Depends(get_recipe_service)) -> list[Recipe]:
-    return recipe_service.get_recipes(db_session)
+    return recipe_service.get_recipes(db_session, title, category_id, max_time)
 
 @router.get("/{id}")
 def get_recipe(id: int, db_session: Session = Depends(get_db),
