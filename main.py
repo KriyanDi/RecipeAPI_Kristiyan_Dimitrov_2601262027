@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
-from routers import category_router, ingredient_router, author_router
+from routers import category_router, ingredient_router, author_router, recipe_router
 from exceptions import AppError, NotFound, DublicationError, ConflictError
 import uvicorn
 
@@ -9,6 +9,7 @@ app = FastAPI()
 app.include_router(category_router.router)
 app.include_router(ingredient_router.router)
 app.include_router(author_router.router)
+app.include_router(recipe_router.router)
 
 @app.exception_handler(AppError)
 def handle_errors(request: Request, exc: AppError):
