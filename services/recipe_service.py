@@ -1,9 +1,10 @@
 from exceptions import NotFound, DublicationError
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-from db.models import Recipe
+from db.models import Recipe, RecipeIngredient
 from services.author_service import AuthorService
 from services.category_service import CategoryService
+from services.ingredient_service import IngredientService
 
 def get_recipe_service():
     return RecipeService()
@@ -82,4 +83,58 @@ class RecipeService:
     def delete_recipe(self, id: int, db_session: Session):
         recipe = self._get(id, db_session)
         db_session.delete(recipe)
+        db_session.commit()
+
+    def _get_link(self, recipe_id: int, ingredient_id: int,
+                  db_session: Session) -> RecipeIngredient:
+        recipe = self._get(recipe_id, db_session)
+        link = db_session.scalars(
+            select(RecipeIngredient).where(
+                RecipeIngredient.recipe_id == recipe.id).where(
+                RecipeIngredient.ingredient_id == ingredient_id)
+                ).one_or_none()
+        if link is None:
+            raise NotFound(
+                f"Ingredient with id {ingredient_id} is not in recipe with id {recipe_id}")
+        return link
+
+    def get_recipe_ingredients(self, recipe_id: int,
+                               db_session: Session) -> list[RecipeIngredient]:
+        recipe = self._get(recipe_id, db_session)
+        return db_session.scalars(
+            select(RecipeIngredient).where(
+                RecipeIngredient.recipe_id == recipe.id)).all()
+
+    def add_ingredient(self, recipe_id: int, data: dict, db_session: Session,
+                       ingredient_service: IngredientService) -> RecipeIngredient:
+        recipe = self._get(recipe_id, db_session)
+        ingredient = ingredient_service.get_ingredient(data["ingredient_id"], db_session)
+        check_link = db_session.scalars(
+            select(RecipeIngredient).where(
+                RecipeIngredient.recipe_id == recipe.id).where(
+                RecipeIngredient.ingredient_id == ingredient.id)
+                ).one_or_none()
+        if check_link is not None:
+            raise DublicationError(
+                f"Ingredient with id {ingredient.id} is already in recipe with id {recipe_id}")
+        link = RecipeIngredient(recipe=recipe, ingredient=ingredient,
+                                quantity=data["quantity"], unit=data["unit"])
+        db_session.add(link)
+        db_session.commit()
+        db_session.refresh(link)
+        return link
+
+    def update_ingredient(self, recipe_id: int, ingredient_id: int, data: dict,
+                          db_session: Session) -> RecipeIngredient:
+        link = self._get_link(recipe_id, ingredient_id, db_session)
+        link.quantity = data["quantity"]
+        link.unit = data["unit"]
+        db_session.commit()
+        db_session.refresh(link)
+        return link
+
+    def remove_ingredient(self, recipe_id: int, ingredient_id: int,
+                          db_session: Session):
+        link = self._get_link(recipe_id, ingredient_id, db_session)
+        db_session.delete(link)
         db_session.commit()
