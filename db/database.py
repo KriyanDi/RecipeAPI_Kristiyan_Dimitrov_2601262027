@@ -10,6 +10,7 @@ def enable_foreign_keys(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+    dbapi_connection.create_function("lower", 1, str.lower)
 
 SessionLocal = sessionmaker(bind=engine)
 
