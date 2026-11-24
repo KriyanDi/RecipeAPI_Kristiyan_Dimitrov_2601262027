@@ -84,3 +84,12 @@ class AddRecipeIngredient(BaseModel):
 class UpdateRecipeIngredient(BaseModel):
     quantity: float = Field(gt=0)
     unit: Literal["g", "ml", "pcs"]
+
+class ScaledRecipe(BaseModel):
+    id: int
+    title: str
+    instructions: str
+    prep_time_minutes: int
+    original_servings: int
+    servings: int
+    ingredients: list[RecipeIngredient]

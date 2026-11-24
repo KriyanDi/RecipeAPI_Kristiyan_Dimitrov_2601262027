@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from models.models import (Recipe, CreateRecipe, UpdateRecipe,
-                           RecipeIngredient, AddRecipeIngredient, UpdateRecipeIngredient)
+                           RecipeIngredient, AddRecipeIngredient, UpdateRecipeIngredient,
+                           ScaledRecipe)
 from sqlalchemy.orm import Session
 from db.database import get_db
 from services.author_service import AuthorService, get_author_service
@@ -65,3 +66,9 @@ def update_recipe_ingredient(id: int, ingredient_id: int, update_ingredient: Upd
 def remove_recipe_ingredient(id: int, ingredient_id: int, db_session: Session = Depends(get_db),
                              recipe_service: RecipeService = Depends(get_recipe_service)):
     recipe_service.remove_ingredient(id, ingredient_id, db_session)
+
+@router.get("/{id}/scaled")
+def get_scaled_recipe(id: int, servings: int = Query(gt=0, le=77),
+                      db_session: Session = Depends(get_db),
+                      recipe_service: RecipeService = Depends(get_recipe_service)) -> ScaledRecipe:
+    return recipe_service.get_scaled_recipe(id, servings, db_session)

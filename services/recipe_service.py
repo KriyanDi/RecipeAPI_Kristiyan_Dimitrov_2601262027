@@ -138,3 +138,20 @@ class RecipeService:
         link = self._get_link(recipe_id, ingredient_id, db_session)
         db_session.delete(link)
         db_session.commit()
+
+    def get_scaled_recipe(self, id: int, servings: int, db_session: Session) -> dict:
+        recipe = self._get(id, db_session)
+        links = db_session.scalars(
+            select(RecipeIngredient).where(
+                RecipeIngredient.recipe_id == recipe.id)).all()
+        ingredients = []
+        for link in links:
+            ingredients.append({
+                "ingredient": {"id": link.ingredient.id, "name": link.ingredient.name},
+                "quantity": round(link.quantity * servings / recipe.servings, 2),
+                "unit": link.unit})
+        return {"id": recipe.id, "title": recipe.title,
+                "instructions": recipe.instructions,
+                "prep_time_minutes": recipe.prep_time_minutes,
+                "original_servings": recipe.servings, "servings": servings,
+                "ingredients": ingredients}
